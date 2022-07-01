@@ -29,6 +29,10 @@ namespace E2A___Ammo_From_Energy.E2A
 
         [ProtoMember(5), XmlElement]
         public List<MyDefinitionId> AmmoList { get; set; }
+
+        [ProtoMember(6), XmlElement]
+        public float powerBuilt { get; set; }
+
         public E2AState()
         {
             Version = CurrentSettingsVersion;
@@ -36,6 +40,7 @@ namespace E2A___Ammo_From_Energy.E2A
             ToMake = 0;
             SpeedMulti = 1.0f;
             AmmoList = new List<MyDefinitionId>();
+            powerBuilt = 0f;
         }
     }
 }

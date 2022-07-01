@@ -3,3 +3,4 @@ obj
 packages
 *.csproj
 packages.config
+modinfo.sbmi

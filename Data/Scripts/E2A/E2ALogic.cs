@@ -35,13 +35,15 @@ namespace E2A___Ammo_From_Energy.E2A
         public bool IsTerminalOpen { get; set; }
 
         public static List<IMyTerminalControl> m_customControls = new List<IMyTerminalControl>();
-        public List<MyDefinitionId> m_AmmoIdSlot = new List<MyDefinitionId>();
-        public Dictionary<MyDefinitionId, Item> m_BPtoAmmo = new Dictionary<MyDefinitionId, Item>();
+        public static List<MyDefinitionId> m_AmmoIdSlot = new List<MyDefinitionId>();
+        public static Dictionary<MyDefinitionId, Item> m_BPtoAmmo = new Dictionary<MyDefinitionId, Item>();
         public static List<string> m_AmmoNames = new List<string>();
+        private static Dictionary<MyDefinitionId, float> m_AvailAmmo = new Dictionary<MyDefinitionId, float>();
+
+
         public List<MyInventoryItem> m_Inv = new List<MyInventoryItem>();
         private MyFixedPoint itemTotal;
-        float builtPower;
-        public float m_PowerMulti
+        public static float m_PowerMulti
         {
             get { return E2ASession.Static?.Settings.m_PowerMulti ?? 1f; }
         }
@@ -53,6 +55,7 @@ namespace E2A___Ammo_From_Energy.E2A
         private bool m_isPowered;
         private static bool m_ControlsCreated = false;
 
+        public MySync<float, SyncDirection.FromServer> mess_BuiltPower = null;
         public MySync<float, SyncDirection.BothWays> mess_SpeedMulti = null;
         public MySync<int, SyncDirection.BothWays> mess_toMake = null;
         public MySync<int, SyncDirection.BothWays> mess_SelectedAmmo = null;
@@ -63,9 +66,7 @@ namespace E2A___Ammo_From_Energy.E2A
         */
 
         private int LastRunTick = -1;
-        private Dictionary<MyDefinitionId, float> m_AvailAmmo = new Dictionary<MyDefinitionId, float>();
 
-        private E2A m_E2A;
 
         public float requiredPowerMulti
         {
@@ -101,6 +102,7 @@ namespace E2A___Ammo_From_Energy.E2A
             var sink = Entity.Components.Get<MyResourceSinkComponent>();
             //MyLog.Default.WriteLine("Len.Loading Last State");
             LoadState();
+            SaveState();
 
             //mess_SelectedAmmo = null;
             //MyLog.Default.WriteLine("Len.AmmoChanged = " + mess_SelectedAmmo);
@@ -179,14 +181,15 @@ namespace E2A___Ammo_From_Energy.E2A
 
 
                 //MyLog.Default.WriteLine("Len.Block Power built: " + builtPower);
-                if (builtPower >= TotalKW)
+                if (mess_BuiltPower.Value >= TotalKW)
                 {
                     //MyLog.Default.WriteLine("Len.Trying to make " + AmmoBpId);
-                    builtPower = 0f;
+                    mess_BuiltPower.ValidateAndSet(0f);
                     MyObjectBuilder_PhysicalObject theAmmo = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(AmmoId.Id);
                     m_block.GetInventory().AddItems(1, theAmmo);
                 }
-                builtPower += RequiredOperationalPower * dt;
+                //builtPower += RequiredOperationalPower * dt;
+                mess_BuiltPower.ValidateAndSet(mess_BuiltPower.Value + (RequiredOperationalPower * dt));
 
                 itemTotal = 0;
                 m_Inv.Clear();
@@ -203,8 +206,6 @@ namespace E2A___Ammo_From_Energy.E2A
 
             m_OperationPower = 1f * m_PowerMulti;
             m_StandbyPower = 0.01f;
-
-            m_E2A = new E2A();
 
             m_block.AppendingCustomInfo += OnAppendingCustomInfo;
 
@@ -223,7 +224,7 @@ namespace E2A___Ammo_From_Energy.E2A
 
             NeedsUpdate |= MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
-            //MyLog.Default.WriteLine("Len.Init Success!");
+            MyLog.Default.WriteLine("Len.Init Success!");
         }
 
         public void LoadState()
@@ -260,6 +261,7 @@ namespace E2A___Ammo_From_Energy.E2A
             mess_toMake.SetLocalValue((int)MathHelper.Max(state.ToMake, 0));
             mess_SelectedAmmo.SetLocalValue((int)MathHelper.Max(m_AmmoIdSlot.IndexOf(state.SelectedAmmo), 0));
             mess_SpeedMulti.SetLocalValue(MathHelper.Clamp(state.SpeedMulti, .5f, 5f));
+            mess_BuiltPower.ValidateAndSet(MathHelper.Max(state.powerBuilt, 0f));
 
             m_block.RefreshCustomInfo();
         }
@@ -451,12 +453,9 @@ namespace E2A___Ammo_From_Energy.E2A
             {
                 if (mess_SelectedAmmo.Value != 0)
                 {
-                    sb.AppendLine("Currently Creating : " + m_AmmoNames[mess_SelectedAmmo.Value]);
+                    sb.AppendLine("Online - Creating : " + m_AmmoNames[mess_SelectedAmmo.Value]);
                     sb.AppendLine("Speed Multiplier : " + mess_SpeedMulti.Value);
-                    //sb.AppendLine("Power Multiplier : " + requiredPowerMulti);
-                    //sb.AppendLine("Progress : " + builtPower + " / " + (m_AvailAmmo[m_AmmoIdSlot[m_SelectedAmmo]] * requiredPowerMulti));
-                    //sb.AppendLine("Progress : " +  (float)MyFixedPoint.AddSafe((MyFixedPoint)builtPower, m_AvailAmmo[m_AmmoIdSlot[m_SelectedAmmo]] * requiredPowerMulti)/100f + "%");
-                    sb.AppendLine("Progress : " + MathHelper.Clamp(100 * (builtPower / (float)(m_AvailAmmo[m_AmmoIdSlot[mess_SelectedAmmo.Value]] * requiredPowerMulti)), 0, 100) + "%");
+                    sb.AppendLine("Progress : " + MathHelper.Clamp(100 * (mess_BuiltPower.Value / (float)(m_AvailAmmo[m_AmmoIdSlot[mess_SelectedAmmo.Value]] * requiredPowerMulti)), 0, 100) + "%");
                 }
                 else
                 {
@@ -655,21 +654,22 @@ namespace E2A___Ammo_From_Energy.E2A
 
         public void SaveState()
         {
-                //MyLog.Default.WriteLine("Len.StartSave");
+                MyLog.Default.WriteLine("Len.StartSave");
                 if (!MyAPIGateway.Multiplayer.IsServer) return;
 
-                var state = new E2AState()
-                {
-                    Version = 1,
-                    SelectedAmmo = m_AmmoIdSlot[mess_SelectedAmmo.Value],
-                    ToMake = mess_toMake.Value,
-                    SpeedMulti = mess_SpeedMulti.Value,
+            var state = new E2AState()
+            {
+                Version = 1,
+                SelectedAmmo = m_AmmoIdSlot[mess_SelectedAmmo.Value],
+                ToMake = mess_toMake.Value,
+                SpeedMulti = mess_SpeedMulti.Value,
+                powerBuilt = mess_BuiltPower.Value
                 };
 
-                //MyLog.Default.WriteLine("Selected ammo is " + state.SelectedAmmo);
+                MyLog.Default.WriteLine("Selected ammo is " + state.SelectedAmmo);
                 if (Entity.Storage == null) { Entity.Storage = new MyModStorageComponent(); }
                 Entity.Storage[ModStorageID] = MyAPIGateway.Utilities.SerializeToXML(state);
-                //MyLog.Default.WriteLine("Len.FinishSave");
+                MyLog.Default.WriteLine("Len.FinishSave");
         }
 
 
