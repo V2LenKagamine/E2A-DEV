@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Definitions 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <EntityComponents>
+        <EntityComponent xsi:type="MyObjectBuilder_ModStorageComponentDefinition">
+            <Id>
+                <TypeId>ModStorageComponent</TypeId>
+                <SubtypeId>E2A2</SubtypeId>
+            </Id>
+            <RegisteredStorageGuids>
+                <guid>02a4c5ec-769a-4592-92a8-2a2f33cae9c1</guid>
+            </RegisteredStorageGuids>
+        </EntityComponent>
+    </EntityComponents>
+</Definitions>

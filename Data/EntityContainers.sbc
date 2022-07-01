@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <EntityContainers>
+        <Container>
+            <Id>
+                <TypeId>ConveyorSorter</TypeId>
+                <SubtypeId>SE2ABlock</SubtypeId>
+            </Id>
+            <DefaultComponents>
+                <Component BuilderType="MyObjectBuilder_Inventory"/>
+            </DefaultComponents>
+        </Container>       
+		<Container>
+            <Id>
+                <TypeId>ConveyorSorter</TypeId>
+                <SubtypeId>BA2EBlock</SubtypeId>
+            </Id>
+            <DefaultComponents>
+                <Component BuilderType="MyObjectBuilder_Inventory"/>
+            </DefaultComponents>
+        </Container>       
+   </EntityContainers>
+</Definitions>
