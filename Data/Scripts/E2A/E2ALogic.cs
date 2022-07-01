@@ -103,15 +103,15 @@ namespace E2A___Ammo_From_Energy.E2A
             LoadState();
 
             //mess_SelectedAmmo = null;
-            MyLog.Default.WriteLine("Len.AmmoChanged = " + mess_SelectedAmmo);
+            //MyLog.Default.WriteLine("Len.AmmoChanged = " + mess_SelectedAmmo);
             mess_SelectedAmmo.ValueChanged += OnMessage_AmmoChanged;
 
             //mess_SpeedMulti = null;
-            MyLog.Default.WriteLine("Len.SpeedChanged = " + mess_SpeedMulti);
+            //MyLog.Default.WriteLine("Len.SpeedChanged = " + mess_SpeedMulti);
             mess_SpeedMulti.ValueChanged += OnMessage_SpeedChanged;
 
             //mess_SpeedMulti = null;
-            MyLog.Default.WriteLine("Len.MakeChanged = " + mess_toMake);
+            //MyLog.Default.WriteLine("Len.MakeChanged = " + mess_toMake);
             mess_toMake.ValueChanged += OnMessage_MakeChanged;
 
             if (sink != null)
@@ -223,7 +223,7 @@ namespace E2A___Ammo_From_Energy.E2A
 
             NeedsUpdate |= MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
-            MyLog.Default.WriteLine("Len.Init Success!");
+            //MyLog.Default.WriteLine("Len.Init Success!");
         }
 
         public void LoadState()
@@ -451,7 +451,7 @@ namespace E2A___Ammo_From_Energy.E2A
             {
                 if (mess_SelectedAmmo.Value != 0)
                 {
-                    sb.AppendLine("Online - Creating : " + m_AmmoNames[mess_SelectedAmmo.Value]);
+                    sb.AppendLine("Currently Creating : " + m_AmmoNames[mess_SelectedAmmo.Value]);
                     sb.AppendLine("Speed Multiplier : " + mess_SpeedMulti.Value);
                     //sb.AppendLine("Power Multiplier : " + requiredPowerMulti);
                     //sb.AppendLine("Progress : " + builtPower + " / " + (m_AvailAmmo[m_AmmoIdSlot[m_SelectedAmmo]] * requiredPowerMulti));
@@ -608,7 +608,7 @@ namespace E2A___Ammo_From_Energy.E2A
         {
             if (MyAPIGateway.Session.IsServer)
             {
-                MyAPIGateway.Utilities.SendMessage("OnMessage_AmmoChanged");
+                //MyAPIGateway.Utilities.SendMessage("OnMessage_AmmoChanged");
                 IsSerialized();
             }
 
@@ -619,7 +619,7 @@ namespace E2A___Ammo_From_Energy.E2A
         {
             if (MyAPIGateway.Session.IsServer)
             {
-                MyAPIGateway.Utilities.SendMessage("OnMessage_SpeedChanged");
+                //MyAPIGateway.Utilities.SendMessage("OnMessage_SpeedChanged");
                 IsSerialized();
             }
 
@@ -630,7 +630,7 @@ namespace E2A___Ammo_From_Energy.E2A
         {
             if (MyAPIGateway.Session.IsServer)
             {
-                MyAPIGateway.Utilities.SendMessage("OnMessage_MakeChanged");
+                //MyAPIGateway.Utilities.SendMessage("OnMessage_MakeChanged");
                 IsSerialized();
             }
 
@@ -655,7 +655,7 @@ namespace E2A___Ammo_From_Energy.E2A
 
         public void SaveState()
         {
-                MyLog.Default.WriteLine("Len.StartSave");
+                //MyLog.Default.WriteLine("Len.StartSave");
                 if (!MyAPIGateway.Multiplayer.IsServer) return;
 
                 var state = new E2AState()
@@ -666,10 +666,10 @@ namespace E2A___Ammo_From_Energy.E2A
                     SpeedMulti = mess_SpeedMulti.Value,
                 };
 
-                MyLog.Default.WriteLine("Selected ammo is " + state.SelectedAmmo);
+                //MyLog.Default.WriteLine("Selected ammo is " + state.SelectedAmmo);
                 if (Entity.Storage == null) { Entity.Storage = new MyModStorageComponent(); }
                 Entity.Storage[ModStorageID] = MyAPIGateway.Utilities.SerializeToXML(state);
-                MyLog.Default.WriteLine("Len.FinishSave");
+                //MyLog.Default.WriteLine("Len.FinishSave");
         }
 
 
