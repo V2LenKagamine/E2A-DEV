@@ -1,120 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-<CubeBlocks>
-<Definition xsi:type="MyObjectBuilder_ConveyorSorterDefinition">
-	<Id>
-		<TypeId>ConveyorSorter</TypeId>
-		<SubtypeId>BE2ABlock</SubtypeId>
-	</Id>
-	<DisplayName>Large E2A Converter</DisplayName>
-	<Icon>Textures\GUI\Icons\Cubes\ConveyorSorterLarge.dds</Icon>
-	<Description>Creates Ammo from Energy</Description>
-	<CubeSize>Large</CubeSize>
-	<GuiVisible>false</GuiVisible>
-	<BlockTopology>TriangleMesh</BlockTopology>
-	<Size x="1" y="1" z="1" />
-	<ModelOffset x="0" y="0" z="0" />
-	<Model>Models\Cubes\Large\CargoContainerSmall.mwm</Model>
-	<Components>
-		<Component Subtype="InteriorPlate" Count="40" />
-		<Component Subtype="Construction" Count="100" />
-		<Component Subtype="SmallTube" Count="50" />
-		<Component Subtype="Computer" Count="20" />
-		<Component Subtype="Motor" Count="2" />
-		<Component Subtype="Construction" Count="20" />
-		<Component Subtype="InteriorPlate" Count="10" />
-	</Components>
-	<CriticalComponent Subtype="Motor" Index="0" />
-	<MountPoints>
-		<MountPoint Side="Right" StartX="0" StartY="0" EndX="1" EndY="1" />
-		<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1" />
-		<MountPoint Side="Top" StartX="0" StartY="0" EndX="1" EndY="1" />
-		<MountPoint Side="Bottom" StartX="0" StartY="0" EndX="1" EndY="1" Default="true" />
-		<MountPoint Side="Front" StartX="0" StartY="0" EndX="1" EndY="1" />
-		<MountPoint Side="Back" StartX="0" StartY="0" EndX="1" EndY="1" />
-	</MountPoints>
-	<BuildProgressModels>
-		<Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\CargoContainerSmallConstruction_1.mwm" />
-		<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\CargoContainerSmallConstruction_2.mwm" />
-		<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\CargoContainerSmallConstruction_3.mwm" />
-	</BuildProgressModels>
-	<BlockPairName>ConveyorSorter</BlockPairName>
-	<MirroringY>Z</MirroringY>
-	<MirroringZ>Y</MirroringZ>
-	<EdgeType>Light</EdgeType>
-	<BuildTimeSeconds>20</BuildTimeSeconds>
-	<DamageEffectName>Damage_HeavyMech_Damaged</DamageEffectName>
-	<DamagedSound>ParticleHeavyMech</DamagedSound>
-	<ResourceSinkGroup>Conveyors</ResourceSinkGroup>
-	<InventorySize>
-		<X>1</X>
-		<Y>1</Y>
-		<Z>1</Z>
-	</InventorySize>
-	<EmissiveColorPreset>Default</EmissiveColorPreset>
-	<DamageEffectName>Damage_HeavyMech_Damaged</DamageEffectName>
-	<DamagedSound>ParticleHeavyMech</DamagedSound>
-	<DestroyEffect>BlockDestroyedExplosion_Large</DestroyEffect>
-	<DestroySound>WepSmallWarheadExpl</DestroySound>
-	<PCU>10</PCU>
-	<IsAirTight>true</IsAirTight>
-</Definition>
-<Definition xsi:type="MyObjectBuilder_ConveyorSorterDefinition">
-	<Id>
-		<TypeId>ConveyorSorter</TypeId>
-		<SubtypeId>SE2ABlock</SubtypeId>
-	</Id>
-	<DisplayName>Small E2A Converter</DisplayName>
-	<Icon>Textures\GUI\Icons\Cubes\ConveyorSorterMedium.dds</Icon>
-	<Description>Creates Ammo from Energy</Description>
-	<CubeSize>Small</CubeSize>
-	<GuiVisible>false</GuiVisible>
-	<BlockTopology>TriangleMesh</BlockTopology>
-	<Size x="1" y="1" z="1" />
-	<ModelOffset x="0" y="0" z="0" />
-	<Model>Models\Cubes\Small\CargoContainerSmall.mwm</Model>
-	<Components>
-		<Component Subtype="InteriorPlate" Count="4" />
-		<Component Subtype="Construction" Count="10" />
-		<Component Subtype="SmallTube" Count="5" />
-		<Component Subtype="Computer" Count="5" />
-		<Component Subtype="Motor" Count="2" />
-		<Component Subtype="Construction" Count="2" />
-		<Component Subtype="InteriorPlate" Count="1" />
-	</Components>
-	<CriticalComponent Subtype="Motor" Index="0" />
-	<MountPoints>
-		<MountPoint Side="Right" StartX="0" StartY="0" EndX="1" EndY="1" />
-		<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1" />
-		<MountPoint Side="Top" StartX="0" StartY="0" EndX="1" EndY="1" />
-		<MountPoint Side="Bottom" StartX="0" StartY="0" EndX="1" EndY="1" Default="true" />
-		<MountPoint Side="Front" StartX="0" StartY="0" EndX="1" EndY="1" />
-		<MountPoint Side="Back" StartX="0" StartY="0" EndX="1" EndY="1" />
-	</MountPoints>
-	<BuildProgressModels>
-		<Model BuildPercentUpperBound="0.50" File="Models\Cubes\Small\CargoContainerSmallConstruction_1.mwm" />
-		<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\CargoContainerSmallConstruction_2.mwm" />
-	</BuildProgressModels>
-	<BlockPairName>ConveyorSorter</BlockPairName>
-	<MirroringY>Z</MirroringY>
-	<MirroringZ>Y</MirroringZ>
-	<EdgeType>Light</EdgeType>
-	<BuildTimeSeconds>12</BuildTimeSeconds>
-	<DamageEffectName>Damage_HeavyMech_Damaged</DamageEffectName>
-	<DamagedSound>ParticleHeavyMech</DamagedSound>
-	<DestroyEffect>BlockDestroyedExplosion_Large</DestroyEffect>
-	<DestroySound>WepSmallWarheadExpl</DestroySound>
-	<ResourceSinkGroup>Conveyors</ResourceSinkGroup>
-	<InventorySize>
-		<X>0.8</X>
-		<Y>0.8</Y>
-		<Z>0.8</Z>
-	</InventorySize>
-	<EmissiveColorPreset>Default</EmissiveColorPreset>
-	<DestroyEffect>BlockDestroyedExplosion_Small</DestroyEffect>
-	<DestroySound>WepSmallWarheadExpl</DestroySound>
-		<PCU>10</PCU>
-		<IsAirTight>true</IsAirTight>
+	<CubeBlocks>
+		<Definition xsi:type="MyObjectBuilder_ConveyorSorterDefinition">
+			<Id>
+				<TypeId>ConveyorSorter</TypeId>
+				<SubtypeId>BE2ABlock</SubtypeId>
+			</Id>
+			<DisplayName>Large E2A Converter</DisplayName>
+			<Icon>Textures\GUI\Icons\AstronautBackpack.dds</Icon>
+			<Description>Creates Ammo from Energy</Description>
+			<CubeSize>Large</CubeSize>
+			<GuiVisible>false</GuiVisible>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="3" y="2" z="3" />
+			<ModelOffset x="0" y="0" z="0" />
+			<Model>Models\Cubes\large\BE2ABlock.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="400"/>
+				<Component Subtype="Construction" Count="400"/>
+				<Component Subtype="MetalGrid" Count="50"/>
+				<Component Subtype="LargeTube" Count="50"/>
+				<Component Subtype="GravityGenerator" Count="20"/>
+				<Component Subtype="PowerCell" Count="250"/>
+				<Component Subtype="Computer" Count="1250"/>
+				<Component Subtype="Motor" Count="400"/>
+				<Component Subtype="Superconductor" Count="80"/>
+				<Component Subtype="Display" Count="25"/>
+				<Component Subtype="SteelPlate" Count="450"/>
+				<Component Subtype="InteriorPlate" Count="100"/>
+			</Components>
+			<CriticalComponent Subtype="Superconductor" Index="0" />
+			<MountPoints>
+				<MountPoint Side="Front" StartX="0.00" StartY="0.00" EndX="3.00" EndY="2.00"/>
+				<MountPoint Side="Back" StartX="0.00" StartY="0.00" EndX="3.00" EndY="2.00"/>
+				<MountPoint Side="Left" StartX="0.00" StartY="0.00" EndX="3.00" EndY="2.00"/>
+				<MountPoint Side="Right" StartX="0.00" StartY="0.00" EndX="3.00" EndY="2.00"/>
+				<MountPoint Side="Top" StartX="0.00" StartY="0.00" EndX="3.00" EndY="3.00"/>
+				<MountPoint Side="Bottom" StartX="0.00" StartY="0.00" EndX="3.00" EndY="3.00" Default="true"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.33" File="Models\Cubes\large\BE2ABlock_BS1.mwm"/>
+				<Model BuildPercentUpperBound="0.67" File="Models\Cubes\large\BE2ABlock_BS2.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\large\BE2ABlock_BS3.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>E2ASystemsBlocks</BlockPairName>
+			<EdgeType>Light</EdgeType>
+			<BuildTimeSeconds>30</BuildTimeSeconds>
+			<DamageEffectName>Damage_HeavyMech_Damaged</DamageEffectName>
+			<DamagedSound>ParticleHeavyMech</DamagedSound>
+			<ResourceSinkGroup>Conveyors</ResourceSinkGroup>
+			<InventorySize>
+				<X>1</X>
+				<Y>1</Y>
+				<Z>1</Z>
+			</InventorySize>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<DamageEffectName>Damage_HeavyMech_Damaged</DamageEffectName>
+			<DamagedSound>ParticleHeavyMech</DamagedSound>
+			<DestroyEffect>BlockDestroyedExplosion_Large</DestroyEffect>
+			<DestroySound>WepSmallWarheadExpl</DestroySound>
+			<PCU>10</PCU>
+			<IsAirTight>true</IsAirTight>
+			<MirroringX>Y</MirroringX>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_ConveyorSorterDefinition">
+			<Id>
+				<TypeId>ConveyorSorter</TypeId>
+				<SubtypeId>SE2ABlock</SubtypeId>
+			</Id>
+			<DisplayName>Small E2A Converter</DisplayName>
+			<Icon>Textures\GUI\Icons\AstronautBackpack.dds</Icon>
+			<Description>Creates Ammo from Energy</Description>
+			<CubeSize>Small</CubeSize>
+			<GuiVisible>false</GuiVisible>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="3" y="2" z="3" />
+			<ModelOffset x="0" y="0" z="0" />
+			<Model>Models\Cubes\small\SE2ABlock.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="100"/>
+				<Component Subtype="Construction" Count="200"/>
+				<Component Subtype="MetalGrid" Count="50"/>
+				<Component Subtype="LargeTube" Count="25"/>
+				<Component Subtype="GravityGenerator" Count="5"/>
+				<Component Subtype="PowerCell" Count="100"/>
+				<Component Subtype="Computer" Count="675"/>
+				<Component Subtype="Motor" Count="200"/>
+				<Component Subtype="Superconductor" Count="20"/>
+				<Component Subtype="Display" Count="20"/>
+				<Component Subtype="SteelPlate" Count="250"/>
+				<Component Subtype="InteriorPlate" Count="400"/>
+			</Components>
+			<CriticalComponent Subtype="Superconductor" Index="0" />
+			<MountPoints>
+				<MountPoint Side="Front" StartX="0.00" StartY="0.00" EndX="3.00" EndY="2.00"/>
+				<MountPoint Side="Back" StartX="0.00" StartY="0.00" EndX="3.00" EndY="2.00"/>
+				<MountPoint Side="Left" StartX="0.00" StartY="0.00" EndX="3.00" EndY="2.00"/>
+				<MountPoint Side="Right" StartX="0.00" StartY="0.00" EndX="3.00" EndY="2.00"/>
+				<MountPoint Side="Top" StartX="0.00" StartY="0.00" EndX="3.00" EndY="3.00"/>
+				<MountPoint Side="Bottom" StartX="0.00" StartY="0.00" EndX="3.00" EndY="3.00" Default="true"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.33" File="Models\Cubes\small\SE2ABlock_BS1.mwm"/>
+				<Model BuildPercentUpperBound="0.67" File="Models\Cubes\small\SE2ABlock_BS2.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\small\SE2ABlock_BS3.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>E2ASystemsBlocks</BlockPairName>
+			<EdgeType>Light</EdgeType>
+			<BuildTimeSeconds>20</BuildTimeSeconds>
+			<DamageEffectName>Damage_HeavyMech_Damaged</DamageEffectName>
+			<DamagedSound>ParticleHeavyMech</DamagedSound>
+			<DestroyEffect>BlockDestroyedExplosion_Large</DestroyEffect>
+			<DestroySound>WepSmallWarheadExpl</DestroySound>
+			<ResourceSinkGroup>Conveyors</ResourceSinkGroup>
+			<InventorySize>
+				<X>0.8</X>
+				<Y>0.8</Y>
+				<Z>0.8</Z>
+			</InventorySize>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<DestroyEffect>BlockDestroyedExplosion_Small</DestroyEffect>
+			<DestroySound>WepSmallWarheadExpl</DestroySound>
+			<PCU>10</PCU>
+			<IsAirTight>true</IsAirTight>
+			<MirroringX>Y</MirroringX>
 		</Definition>
 	</CubeBlocks>
 </Definitions>

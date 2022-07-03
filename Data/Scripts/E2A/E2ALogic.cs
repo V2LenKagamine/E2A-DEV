@@ -23,6 +23,7 @@ using VRageMath;
 using VRage.Network;
 using VRage.Game.ModAPI.Network;
 using VRage.Sync;
+using VRage.Game.Entity;
 
 namespace E2A___Ammo_From_Energy.E2A
 {
@@ -97,6 +98,12 @@ namespace E2A___Ammo_From_Energy.E2A
             return Math.Max(m_StandbyPower, RequiredOperationalPower);
         }
 
+        public override void UpdateAfterSimulation()
+        {
+            Float();
+        }
+
+
         public override void UpdateOnceBeforeFrame()
         {
             var sink = Entity.Components.Get<MyResourceSinkComponent>();
@@ -134,12 +141,18 @@ namespace E2A___Ammo_From_Energy.E2A
 
             if (m_block?.CubeGrid?.Physics != null)
             {
+
+                NeedsUpdate |= MyEntityUpdateEnum.EACH_FRAME;
                 NeedsUpdate = MyEntityUpdateEnum.EACH_100TH_FRAME;
 
                 LastRunTick = MyAPIGateway.Session.GameplayFrameCounter;
 
             }
+
+            m_block.SetEmissivePartsForSubparts("ShinyOrb",new Color(16,0,91), 0.65f);
+
             base.UpdateOnceBeforeFrame();
+
         }
 
 
@@ -223,6 +236,7 @@ namespace E2A___Ammo_From_Energy.E2A
 
 
             NeedsUpdate |= MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
+            NeedsUpdate |= MyEntityUpdateEnum.EACH_FRAME;
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
             MyLog.Default.WriteLine("Len.Init Success!");
         }
@@ -516,7 +530,7 @@ namespace E2A___Ammo_From_Energy.E2A
             dropdown.ComboBoxContent = (ele) =>
             {
                 ele.Clear();
-                foreach (var ammo in m_AmmoNames)
+                foreach (string ammo in m_AmmoNames)
                 {
                     MyStringId s = MyStringId.GetOrCompute(ammo);
                     if (s == MyStringId.GetOrCompute("Old Scrap Metal"))
@@ -685,6 +699,72 @@ namespace E2A___Ammo_From_Energy.E2A
             }
 
             return base.IsSerialized();
+        }
+
+
+        private const string SUBPART_NAME = "subpart_ORB";
+        private bool FirstFind = true;
+        private Matrix subpartLocalMatrix;
+        private readonly Vector3 DIR_UP = Vector3.Up;
+        private bool Ponder;
+
+
+        double Floaty(double amplitude, double oscilationsPerSecond, double timeSeconds)
+        {
+            return amplitude * Math.Sin(2 * Math.PI * oscilationsPerSecond * timeSeconds);
+        }
+
+        private void Float()
+        {
+            try
+            {
+
+                MyEntitySubpart ORB;
+                Entity.TryGetSubpart(SUBPART_NAME, out ORB);
+                if (m_isPowered)
+                {
+
+
+                    if (ORB.Render.IsVisible() && !IsWorking)
+                    {
+                        ORB.Render.Visible = false;
+                    } else
+                    {
+                        ORB.Render.Visible = true;
+                    }
+                    
+
+                    var camPos = MyAPIGateway.Session.Camera.WorldMatrix.Translation;
+                    if (Vector3D.DistanceSquared(camPos,m_block.GetPosition()) > (250*250))
+                    {
+                        return;
+                    }
+
+                    
+
+                    if (Ponder)
+                    {
+                        if (FirstFind)
+                        {
+                            FirstFind = false;
+                            subpartLocalMatrix = ORB.PositionComp.LocalMatrixRef;
+                        }
+                    }
+                    Matrix local = subpartLocalMatrix;
+                    local.Translation += local.Up * (float)Floaty(0.25,0.5,MyAPIGateway.Session.GameplayFrameCounter);
+                    ORB.PositionComp.SetLocalMatrix(ref local);
+                    subpartLocalMatrix = Matrix.Normalize(subpartLocalMatrix);
+                    
+                }
+                else
+                {
+                    ORB.Render.Visible = false;
+                }
+            } catch (Exception e)
+            {
+                MyLog.Default.WriteLine("Len.ERORR: " + e);
+            }
+
         }
 
     }

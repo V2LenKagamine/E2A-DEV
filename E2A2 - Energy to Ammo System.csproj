@@ -139,7 +139,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Data\Scripts\E2A\E2A.cs" />
     <Compile Include="Data\Scripts\E2A\E2ALogic.cs" />
     <Compile Include="Data\Scripts\E2A\E2ASessionComponent.cs" />
     <Compile Include="Data\Scripts\E2A\E2AState.cs" />
