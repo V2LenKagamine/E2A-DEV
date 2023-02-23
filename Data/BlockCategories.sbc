@@ -10,7 +10,8 @@
       <Name>E2ASystems</Name>
       <IsShipCategory>true</IsShipCategory>
       <ItemIds>
-	<string>E2ASystemsBlocks</string>
+	<string>BE2ABlocks</string>
+		  <string>SE2ABlocks</string>
       </ItemIds>
     </Category>
   </CategoryClasses>

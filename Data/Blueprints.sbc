@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Blueprints>
+    <Blueprint>
+      <Id>
+        <TypeId>BlueprintDefinition</TypeId>
+        <SubtypeId>Blueprint_E2A_MatterConverter</SubtypeId>
+      </Id>
+      <DisplayName>MatterConverter</DisplayName>
+      <Icon>Textures\GUI\Icons\component\gravity_generator_components_component.dds</Icon>
+      <Prerequisites>
+		  <Item Amount="100" TypeId="Ingot" SubtypeId="Iron" />
+		  <Item Amount="15" TypeId="Ingot" SubtypeId="Silver" />
+		  <Item Amount="25" TypeId="Ingot" SubtypeId="Gold" />
+		  <Item Amount="50" TypeId="Ingot" SubtypeId="Nickel" />
+		  <Item Amount="75" TypeId="Ingot" SubtypeId="Silicon" />
+		  <Item Amount="10" TypeId="Ingot" SubtypeId="Uranium" />
+		  <Item Amount="7.5" TypeId="Ingot" SubtypeId="Platinum" />
+      </Prerequisites>
+      <Result Amount="1" TypeId="Component" SubtypeId="E2A_MatterConverter" />
+      <BaseProductionTimeInSeconds>300</BaseProductionTimeInSeconds>
+    </Blueprint>
+  </Blueprints>
+  <BlueprintClassEntries>
+    <!-- survival kit -->
+    <Entry Class="Components" BlueprintSubtypeId="Blueprint_E2A_MatterConverter" />
+
+    <!-- basic assembler -->
+    <Entry Class="Components" BlueprintSubtypeId="Blueprint_E2A_MatterConverter" />
+
+    <!-- assembler (2x1x1) -->
+    <Entry Class="Components" BlueprintSubtypeId="Blueprint_E2A_MatterConverter" />
+  </BlueprintClassEntries>
+</Definitions>
