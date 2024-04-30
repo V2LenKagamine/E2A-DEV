@@ -40,17 +40,15 @@ namespace E2A___Ammo_From_Energy.E2A
         public bool IsTerminalOpen { get; set; }
 
         public static List<IMyTerminalControl> m_customControls = new List<IMyTerminalControl>();
+        /*
         public static List<MyDefinitionId> m_AmmoIdSlot = new List<MyDefinitionId>();
         public static Dictionary<MyDefinitionId, Item> m_BPtoAmmo = new Dictionary<MyDefinitionId, Item>();
         public static List<string> m_AmmoNames = new List<string>();
         private static Dictionary<MyDefinitionId, float> m_AvailAmmo = new Dictionary<MyDefinitionId, float>();
-
+        */
+        private static List<E2AAmmoRegistryEntry> E2AAmmoRegistry = new List<E2AAmmoRegistryEntry>();
         private static float powerRequiredBase = 0.05f;
 
-        List<MyInventoryItem> m_Inv = new List<MyInventoryItem>();
-        MyFixedPoint itemTotal;
-        MyFixedPoint itemTotal2;
-        MyFixedPoint itemTotal3;
 
         public static float m_PowerMulti
         {
@@ -93,11 +91,11 @@ namespace E2A___Ammo_From_Energy.E2A
             { 
                 if (m_block.CubeGrid.GridSizeEnum == 0)
                 {
-                    return m_block.Enabled && m_block.IsFunctional && (mess_SelectedAmmo.Value != 0 || mess_SelectedAmmo2.Value != 0 || mess_SelectedAmmo3.Value != 0);
+                    return m_block.Enabled && m_block.IsFunctional && (mess_SelectedAmmo.Value != null || mess_SelectedAmmo2.Value != null || mess_SelectedAmmo3.Value != null);
                 }
                 else
                 {
-                    return m_block.Enabled && m_block.IsFunctional && mess_SelectedAmmo.Value != 0;
+                    return m_block.Enabled && m_block.IsFunctional && mess_SelectedAmmo.Value != null;
                 }
             }
         }
@@ -107,9 +105,9 @@ namespace E2A___Ammo_From_Energy.E2A
             get
             {
                 int running = 0;
-                if (mess_SelectedAmmo.Value != 0) { running++; }
-                if (mess_SelectedAmmo2.Value != 0) { running++; }
-                if (mess_SelectedAmmo3.Value != 0) { running++; }
+                if (mess_SelectedAmmo.Value != null) { running++; }
+                if (mess_SelectedAmmo2.Value != null) { running++; }
+                if (mess_SelectedAmmo3.Value != null) { running++; }
 
                 return running;
             }
@@ -121,9 +119,7 @@ namespace E2A___Ammo_From_Energy.E2A
             {
                 if (m_block.CubeGrid.GridSizeEnum == 0)
                 {
-                    
-
-                    return m_OpsRunning * m_OperationPower * m_PowerMulti * mess_SpeedMulti.Value * BlockSizeSpeedMulti;
+                    return m_OperationPower * m_PowerMulti * mess_SpeedMulti.Value * (m_OpsRunning / BlockSizeSpeedMulti);
                 }
                 else
                 {
@@ -250,178 +246,238 @@ namespace E2A___Ammo_From_Energy.E2A
             if (IsWorking && MyAPIGateway.Multiplayer.IsServer)
             {
 
+                List<MyInventoryItem> m_Inv = new List<MyInventoryItem>();
+                MyFixedPoint itemTotal;
+
                 if (m_block.CubeGrid.GridSizeEnum == 0)
                 {
-                    /*
-                     * Good god this is a mess, clean this up later maybe.
-                     */
-                    itemTotal = 0;
-                    itemTotal2 = 0;
-                    itemTotal3 = 0;
-                    m_Inv.Clear();
-                    float TotalKW = 0;
-                    float TotalKW2 = 0;
-                    float TotalKW3 = 0;
-                    MyDefinitionId AmmoBpId;
-                    MyDefinitionId AmmoBpId2;
-                    MyDefinitionId AmmoBpId3;
-                    bool canfitammo1 = false;
-                    bool canfitammo2 = false;
-                    bool canfitammo3 = false;
-                    MyDefinitionId.TryParse("MyObjectBuilder_ConsumableItem/ClangCola", out AmmoBpId);
-                    MyDefinitionId.TryParse("MyObjectBuilder_ConsumableItem/ClangCola", out AmmoBpId2);
-                    MyDefinitionId.TryParse("MyObjectBuilder_ConsumableItem/ClangCola", out AmmoBpId3);
-                    //MyLog.Default.WriteLine("Len.LoadingAmmoID");
-                    if (mess_SelectedAmmo != 0) { AmmoBpId = m_AmmoIdSlot[mess_SelectedAmmo.Value]; }
-                    if (mess_SelectedAmmo2 != 0) { AmmoBpId2 = m_AmmoIdSlot[mess_SelectedAmmo2.Value]; }
-                    if (mess_SelectedAmmo3 != 0) { AmmoBpId3 = m_AmmoIdSlot[mess_SelectedAmmo3.Value]; }
-                    //MyLog.Default.WriteLine("Len.LoadingTotalKW");
-                     
-
-                    m_block.GetInventory().GetItems(m_Inv);
-                     //MyLog.Default.WriteLine("Len.Inventory Slots : " + m_Inv.Count);
-                    foreach (var slot in m_Inv)
+                    for (int i = 0; i < 3; i++)
                     {
-                        if (AmmoBpId.SubtypeName != "ClangCola") {
-                            if (slot.Type.SubtypeId == MyDefinitionManager.Static.GetBlueprintDefinition(AmmoBpId).Results[0].Id.SubtypeName)
+                        itemTotal = 0;
+                        float TotalKW = 0;
+                        MyDefinitionId AmmoBpId;
+                        MyDefinitionId.TryParse("MyObjectBuilder_ConsumableItem/ClangCola", out AmmoBpId);
+                        //MyLog.Default.WriteLine("Len.LoadingAmmoID");
+                        E2AAmmoRegistryEntry Entry = new E2AAmmoRegistryEntry();
+                        switch (i)
+                        {
+                            case 0:
+                                {
+                                    Entry = E2AAmmoRegistry.ElementAt(mess_SelectedAmmo);
+                                    if (mess_SelectedAmmo != 0) { AmmoBpId = Entry.AmmoBPID; }
+                                    break;
+                                }
+                            case 1:
+                                {
+                                    Entry = E2AAmmoRegistry.ElementAt(mess_SelectedAmmo2);
+                                    if (mess_SelectedAmmo2 != 0) { AmmoBpId = Entry.AmmoBPID; }
+                                    break;
+                                }
+                            case 2:
+                                {
+                                    Entry = E2AAmmoRegistry.ElementAt(mess_SelectedAmmo3);
+                                    if (mess_SelectedAmmo3 != 0) { AmmoBpId = Entry.AmmoBPID; }
+                                    break;
+                                }
+                        }
+                        
+                        //MyLog.Default.WriteLine("Len.LoadingTotalKW");
+                        m_block.GetInventory().GetItems(m_Inv);
+                        //MyLog.Default.WriteLine("Len.Inventory Slots : " + m_Inv.Count);
+                        foreach (var slot in m_Inv)
+                        {
+                            if (AmmoBpId.SubtypeName != "ClangCola")
                             {
-                                itemTotal += MyFixedPoint.AddSafe(itemTotal, slot.Amount);
+                                if (slot.Type.SubtypeId == MyDefinitionManager.Static.GetBlueprintDefinition(AmmoBpId).Results[0].Id.SubtypeName)
+                                {
+                                    itemTotal += MyFixedPoint.AddSafe(itemTotal, slot.Amount);
+                                }
                             }
                         }
-                        if (AmmoBpId2.SubtypeName != "ClangCola")
+                        bool GoodRun = false;
+                        switch (i)
                         {
-                            if (slot.Type.SubtypeId == MyDefinitionManager.Static.GetBlueprintDefinition(AmmoBpId2).Results[0].Id.SubtypeName)
-                            {
-                                itemTotal2 += MyFixedPoint.AddSafe(itemTotal2, slot.Amount);
-                            }
+                            case 0:
+                                {
+                                    if((itemTotal <= mess_toMake.Value || mess_toMake.Value == 0)&& mess_SelectedAmmo.Value != 0)
+                                    {
+                                        GoodRun = true;
+                                    }
+                                    break;
+                                }
+                            case 1:
+                                {
+                                    if ((itemTotal <= mess_toMake2.Value || mess_toMake2.Value == 0) && mess_SelectedAmmo2.Value != 0)
+                                    {
+                                        GoodRun = true;
+                                    }
+                                    break;
+                                }
+                            case 2:
+                                {
+                                    if ((itemTotal <= mess_toMake3.Value || mess_toMake3.Value == 0) && mess_SelectedAmmo3.Value != 0)
+                                    {
+                                        GoodRun = true;
+                                    }
+                                    break;
+                                }
                         }
-                        if (AmmoBpId3.SubtypeName != "ClangCola")
+                        if (GoodRun)
                         {
-                            if (slot.Type.SubtypeId == MyDefinitionManager.Static.GetBlueprintDefinition(AmmoBpId3).Results[0].Id.SubtypeName)
+                            TotalKW = Entry.PowerToMake * requiredPowerMulti;
+                            int ttm = 0;
+                            switch(i)
                             {
-                                itemTotal3 += MyFixedPoint.AddSafe(itemTotal3, slot.Amount);
+                                case 0:
+                                    {
+                                        ttm = (int)Math.Floor(mess_BuiltPower.Value / TotalKW);
+                                        break;
+                                    }
+                                case 1:
+                                    {
+                                        ttm = (int)Math.Floor(mess_BuiltPower2.Value / TotalKW);
+                                        break;
+                                    }
+                                case 2:
+                                    {
+                                        ttm = (int)Math.Floor(mess_BuiltPower3.Value / TotalKW);
+                                        break;
+                                    }
                             }
+                            if (m_block.GetInventory().CanItemsBeAdded(ttm, MyDefinitionManager.Static.GetBlueprintDefinition(AmmoBpId).Results[0].Id))
+                            {
+                                bool Ready = false;
+                                switch (i)
+                                {
+                                    case 0:
+                                        {
+                                            Ready = mess_BuiltPower.Value >= TotalKW;
+                                            break;
+                                        }
+                                    case 1:
+                                        {
+                                            Ready = mess_BuiltPower2.Value >= TotalKW;
+                                            break;
+                                        }
+                                    case 2:
+                                        {
+                                            Ready = mess_BuiltPower3.Value >= TotalKW;
+                                            break;
+                                        }
+                                }
+                                //MyLog.Default.WriteLine("Len.Block Power built: " + builtPower);
+                                if (Ready)
+                                {
+                                    Item AmmoId = Entry.AmmoItemResult;
+                                    MyObjectBuilder_PhysicalObject theAmmo = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(AmmoId.Id);
+                                    //MyLog.Default.WriteLine("Len.Trying to make " + AmmoBpId);
+                                    
+                                    switch (i)
+                                    {
+                                        case 0:
+                                            {
+                                                mess_BuiltPower.ValidateAndSet(mess_BuiltPower.Value - (TotalKW * ttm));
+                                                break;
+                                            }
+                                        case 1:
+                                            {
+                                                mess_BuiltPower2.ValidateAndSet(mess_BuiltPower2.Value - (TotalKW * ttm));
+                                                break;
+                                            }
+                                        case 2:
+                                            {
+                                                mess_BuiltPower3.ValidateAndSet(mess_BuiltPower3.Value - (TotalKW * ttm));
+                                                break;
+                                            }
+                                    }
+                                    m_block.GetInventory().AddItems(MathHelper.Clamp(ttm, 1, int.MaxValue), theAmmo);
+                                }
+                            }
+                            else if (ttm >= 1)
+                            {
+                                switch (i)
+                                {
+                                    case 0:
+                                        {
+                                            mess_SelectedAmmo.ValidateAndSet(0);
+                                            break;
+                                        }
+                                    case 1:
+                                        {
+                                            mess_SelectedAmmo2.ValidateAndSet(0);
+                                            break;
+                                        }
+                                    case 2:
+                                        {
+                                            mess_SelectedAmmo3.ValidateAndSet(0);
+                                            break;
+                                        }
+                                }
+                            }
+                            switch(i)
+                            {
+                                case 0:
+                                    {
+                                        mess_BuiltPower.ValidateAndSet(mess_BuiltPower.Value + ((RequiredOperationalPower * mess_SpeedMulti.Value) / m_OpsRunning * dt));
+                                        break;
+                                    }
+                                case 1:
+                                    {
+                                        mess_BuiltPower2.ValidateAndSet(mess_BuiltPower2.Value + ((RequiredOperationalPower * mess_SpeedMulti.Value) / m_OpsRunning * dt));
+                                        break;
+                                    }
+                                case 2:
+                                    {
+                                        mess_BuiltPower3.ValidateAndSet(mess_BuiltPower3.Value + ((RequiredOperationalPower * mess_SpeedMulti.Value) / m_OpsRunning * dt));
+                                        break;
+                                    }
+                            }
+                            
                         }
                     }
-                    if ((itemTotal <= mess_toMake.Value || mess_toMake.Value == 0) && mess_SelectedAmmo.Value != 0)
-                    {
-                        TotalKW = m_AvailAmmo[AmmoBpId] * requiredPowerMulti;
-                        int ttm = (int)Math.Floor(mess_BuiltPower.Value / TotalKW);
-                        canfitammo1 = m_block.GetInventory().CanItemsBeAdded(ttm, MyDefinitionManager.Static.GetBlueprintDefinition(AmmoBpId).Results[0].Id);
-                        if (canfitammo1)
-                        {
-                            //MyLog.Default.WriteLine("Len.Block Power built: " + builtPower);
-                            if (mess_BuiltPower.Value >= TotalKW)
-                            {
-                                Item AmmoId = m_BPtoAmmo[AmmoBpId];
-                                MyObjectBuilder_PhysicalObject theAmmo = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(AmmoId.Id);
-                                //MyLog.Default.WriteLine("Len.Trying to make " + AmmoBpId);
-                                mess_BuiltPower.ValidateAndSet(mess_BuiltPower.Value - (TotalKW * ttm));
-
-                                m_block.GetInventory().AddItems(MathHelper.Clamp(ttm, 1, int.MaxValue), theAmmo);
-                            }
-                            mess_BuiltPower.ValidateAndSet(mess_BuiltPower.Value + ((RequiredOperationalPower * mess_SpeedMulti.Value) / m_OpsRunning * dt));
-                        }
-                    }
-                    if ((itemTotal2 <= mess_toMake2.Value || mess_toMake2.Value == 0) && mess_SelectedAmmo2.Value != 0)
-                    {
-                        TotalKW2 = m_AvailAmmo[AmmoBpId2] * requiredPowerMulti;
-                        int ttm = (int)Math.Floor(mess_BuiltPower2.Value / TotalKW2);
-                        canfitammo2 = m_block.GetInventory().CanItemsBeAdded(ttm, MyDefinitionManager.Static.GetBlueprintDefinition(AmmoBpId2).Results[0].Id);
-                        if (canfitammo2)
-                        {
-                            //MyLog.Default.WriteLine("Len.Block Power built: " + builtPower);
-                            if (mess_BuiltPower2.Value >= TotalKW2)
-                            {
-                                Item AmmoId2 = m_BPtoAmmo[AmmoBpId2];
-                                MyObjectBuilder_PhysicalObject theAmmo = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(AmmoId2.Id);
-                                //MyLog.Default.WriteLine("Len.Trying to make " + AmmoBpId);
-                                mess_BuiltPower2.ValidateAndSet(mess_BuiltPower2.Value - (TotalKW2 * ttm));
-
-                                m_block.GetInventory().AddItems(MathHelper.Clamp(ttm, 1, int.MaxValue), theAmmo);
-                            }
-                            mess_BuiltPower2.ValidateAndSet(mess_BuiltPower2.Value + ((RequiredOperationalPower * mess_SpeedMulti.Value) / m_OpsRunning * dt));
-                        }
-                    }
-                    if ((itemTotal3 <= mess_toMake3.Value || mess_toMake3.Value == 0) && mess_SelectedAmmo3.Value != 0)
-                    {
-                        TotalKW3 = m_AvailAmmo[AmmoBpId3] * requiredPowerMulti;
-                        int ttm = (int)Math.Floor(mess_BuiltPower3.Value / TotalKW3);
-                        canfitammo3 = m_block.GetInventory().CanItemsBeAdded(ttm, MyDefinitionManager.Static.GetBlueprintDefinition(AmmoBpId3).Results[0].Id);
-                        if (canfitammo3)
-                        {
-                            //MyLog.Default.WriteLine("Len.Block Power built: " + builtPower);
-                            if (mess_BuiltPower3.Value >= TotalKW3)
-                            {
-                                Item AmmoId3 = m_BPtoAmmo[AmmoBpId3];
-                                MyObjectBuilder_PhysicalObject theAmmo = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(AmmoId3.Id);
-                                //MyLog.Default.WriteLine("Len.Trying to make " + AmmoBpId);
-                                mess_BuiltPower3.ValidateAndSet(mess_BuiltPower3.Value - (TotalKW3 * ttm));
-
-                                m_block.GetInventory().AddItems(MathHelper.Clamp(ttm,1,int.MaxValue), theAmmo);
-                            }
-                            mess_BuiltPower3.ValidateAndSet(mess_BuiltPower3.Value + ((RequiredOperationalPower * mess_SpeedMulti.Value) / m_OpsRunning * dt));
-                        }
-                    }
-              
-                    itemTotal = 0;
-                    itemTotal2 = 0;
-                    itemTotal3 = 0;
-                    m_Inv.Clear();
                     UpdateDetailInfo();
                 }
                 else
                 {
-
                     itemTotal = 0;
-                    m_Inv.Clear();
-
                     m_block.GetInventory().GetItems(m_Inv);
-                    //[Func<MyInventoryItem, bool>isItem]
-                    // MyLog.Default.WriteLine("Len.Inventory Slots : " + m_Inv.Count);
                     foreach (var slot in m_Inv)
                     {
                         itemTotal += MyFixedPoint.AddSafe(itemTotal, slot.Amount);
                     }
                     //MyLog.Default.WriteLine("Len.Total Items : " + itemTotal);
                     //MyLog.Default.WriteLine("Len.ToPrint : " + m_toMake);
-                    if ((itemTotal >= mess_toMake.Value && mess_toMake.Value != 0) || mess_SelectedAmmo.Value == 0)
+                    if ((itemTotal <= mess_toMake.Value && mess_toMake.Value == 0) || mess_SelectedAmmo.Value != 0)
                     {
-                        //MyLog.Default.WriteLine("Len.Thing full or broke");
-                        UpdateDetailInfo();
-                        //m_block.RefreshCustomInfo();
-                        return;
-                    }
+                        E2AAmmoRegistryEntry Entry = E2AAmmoRegistry.ElementAt(mess_SelectedAmmo);
+                        //MyLog.Default.WriteLine("Len.LoadingAmmoID");
+                        MyDefinitionId AmmoBpId = Entry.AmmoBPID;
+                        //MyLog.Default.WriteLine("Len.LoadingTotalKW");
+                        float TotalKW = Entry.PowerToMake * requiredPowerMulti;
+                        int ttm = (int)Math.Floor(mess_BuiltPower.Value / TotalKW);
+                        Item AmmoId = Entry.AmmoItemResult;
 
-
-
-                    //MyLog.Default.WriteLine("Len.LoadingAmmoID");
-                    MyDefinitionId AmmoBpId = m_AmmoIdSlot[mess_SelectedAmmo.Value];
-                    //MyLog.Default.WriteLine("Len.LoadingTotalKW");
-                    float TotalKW = m_AvailAmmo[AmmoBpId] * requiredPowerMulti;
-                    Item AmmoId = m_BPtoAmmo[AmmoBpId];
-
-                    if (m_block.GetInventory().CanItemsBeAdded(1, MyDefinitionManager.Static.GetBlueprintDefinition(AmmoBpId).Results[0].Id))
-                    {
-                        //MyLog.Default.WriteLine("Len.Block Power built: " + builtPower);
-                        if (mess_BuiltPower.Value >= TotalKW)
+                        if (m_block.GetInventory().CanItemsBeAdded(ttm, MyDefinitionManager.Static.GetBlueprintDefinition(AmmoBpId).Results[0].Id))
                         {
-                            MyObjectBuilder_PhysicalObject theAmmo = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(AmmoId.Id);
-                            //MyLog.Default.WriteLine("Len.Trying to make " + AmmoBpId);
-                            mess_BuiltPower.ValidateAndSet(mess_BuiltPower.Value - TotalKW);
+                            if (mess_BuiltPower.Value >= TotalKW)
+                            {
+                                MyObjectBuilder_PhysicalObject theAmmo = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(AmmoId.Id);
+                                //MyLog.Default.WriteLine("Len.Trying to make " + AmmoBpId);
+                                mess_BuiltPower.ValidateAndSet(mess_BuiltPower.Value - (TotalKW * ttm));
 
-                            m_block.GetInventory().AddItems(1, theAmmo);
+                                m_block.GetInventory().AddItems(ttm, theAmmo);
+                            }
                         }
+                        else if (ttm >= 1)
+                        {
+                            mess_SelectedAmmo.ValidateAndSet(0);
+                        }
+                        //builtPower += RequiredOperationalPower * dt;
+                        mess_BuiltPower.ValidateAndSet(mess_BuiltPower.Value + (RequiredOperationalPower * dt));
                     }
-                    //builtPower += RequiredOperationalPower * dt;
-                    mess_BuiltPower.ValidateAndSet(mess_BuiltPower.Value + (RequiredOperationalPower * dt));
-
-                    itemTotal = 0;
-                    m_Inv.Clear();
                 }
             }
             UpdateDetailInfo();
-            //m_block.RefreshCustomInfo();
         }
 
         public override void Init(MyObjectBuilder_EntityBase objBuilder)
@@ -453,6 +509,33 @@ namespace E2A___Ammo_From_Energy.E2A
             //MyLog.Default.WriteLine("Len.Init Success!");
         }
 
+        public void SaveState()
+        {
+            //MyLog.Default.WriteLine("Len.StartSave");
+            if (!MyAPIGateway.Multiplayer.IsServer) return;
+
+            List<E2AData> stateupload = new List<E2AData>
+            {
+                new E2AData(E2AAmmoRegistry.ElementAt(mess_SelectedAmmo.Value).AmmoBPID,mess_toMake.Value,mess_BuiltPower.Value),
+                new E2AData(E2AAmmoRegistry.ElementAt(mess_SelectedAmmo2.Value).AmmoBPID,mess_toMake2.Value,mess_BuiltPower2.Value),
+                new E2AData(E2AAmmoRegistry.ElementAt(mess_SelectedAmmo3.Value).AmmoBPID,mess_toMake3.Value,mess_BuiltPower3.Value)
+            };
+
+
+            var state = new E2AState()
+            {
+                Version = 2,
+                SpeedMulti = mess_SpeedMulti.Value,
+                DataList = stateupload
+            };
+
+            //MyLog.Default.WriteLine("Selected ammo is " + state.SelectedAmmo);
+            if (Entity.Storage == null) { Entity.Storage = new MyModStorageComponent(); }
+            Entity.Storage[ModStorageID] = MyAPIGateway.Utilities.SerializeToXML(state);
+            //MyLog.Default.WriteLine("Len.FinishSave");
+        }
+
+
         public void LoadState()
         {
             E2AState state = null;
@@ -483,14 +566,25 @@ namespace E2A___Ammo_From_Energy.E2A
                 //MyLog.Default.WriteLine("Len.Loadstate Null!");
             }
 
-
-            mess_toMake.SetLocalValue((int)MathHelper.Max(state.ToMake, 0));
+            try
+            {
+                mess_toMake.SetLocalValue((int)MathHelper.Max(state.DataList[0].AmtToMake, 0));
+                mess_toMake2.SetLocalValue((int)MathHelper.Max(state.DataList[1].AmtToMake, 0));
+                mess_toMake3.SetLocalValue((int)MathHelper.Max(state.DataList[2].AmtToMake, 0));
+            }
+            catch (Exception e)
+            {
+                MyLog.Default.WriteLine("Len.Error: " + e + "If you're seeing this, either I did a bad, or you messed with the XML.");
+                mess_toMake.ValidateAndSet(0);
+                mess_toMake2.ValidateAndSet(0);
+                mess_toMake3.ValidateAndSet(0);
+            }
             //Pretty sure loading an invalid ammo means crash. So try/catch here.
             try 
-            { 
-                mess_SelectedAmmo.SetLocalValue((int)MathHelper.Max(m_AmmoIdSlot.IndexOf(state.SelectedAmmo), 0));
-                mess_SelectedAmmo2.SetLocalValue((int)MathHelper.Max(m_AmmoIdSlot.IndexOf(state.SelectedAmmo2), 0));
-                mess_SelectedAmmo3.SetLocalValue((int)MathHelper.Max(m_AmmoIdSlot.IndexOf(state.SelectedAmmo3), 0));
+            {
+                mess_SelectedAmmo.SetLocalValue((int)MathHelper.Max(E2AAmmoRegistry.FindIndex(entry => entry.AmmoBPID == state.DataList[0].SelectedAmmoType), 0));
+                mess_SelectedAmmo2.SetLocalValue((int)MathHelper.Max(E2AAmmoRegistry.FindIndex(entry => entry.AmmoBPID == state.DataList[1].SelectedAmmoType), 0));
+                mess_SelectedAmmo3.SetLocalValue((int)MathHelper.Max(E2AAmmoRegistry.FindIndex(entry => entry.AmmoBPID == state.DataList[2].SelectedAmmoType), 0));
             }
             catch (Exception e) 
             {
@@ -501,9 +595,9 @@ namespace E2A___Ammo_From_Energy.E2A
             }
             
             mess_SpeedMulti.SetLocalValue(MathHelper.Clamp(state.SpeedMulti, 1f, 5f));
-            mess_BuiltPower.ValidateAndSet(MathHelper.Max(state.powerBuilt, 0f));
-            mess_BuiltPower2.ValidateAndSet(MathHelper.Max(state.powerBuilt2, 0f));
-            mess_BuiltPower3.ValidateAndSet(MathHelper.Max(state.powerBuilt3, 0f));
+            mess_BuiltPower.ValidateAndSet(MathHelper.Max(state.DataList[0].PowerStored, 0f));
+            mess_BuiltPower2.ValidateAndSet(MathHelper.Max(state.DataList[1].PowerStored, 0f));
+            mess_BuiltPower3.ValidateAndSet(MathHelper.Max(state.DataList[2].PowerStored, 0f));
 
             m_block.RefreshCustomInfo();
         }
@@ -533,12 +627,34 @@ namespace E2A___Ammo_From_Energy.E2A
         }
       */
 
+        public class E2AAmmoRegistryEntry
+        {
+            public float PowerToMake;
+            public string AmmoLang;
+            public MyDefinitionId AmmoBPID;
+            public Item AmmoItemResult;
+
+            public E2AAmmoRegistryEntry(float powerToMake, MyDefinitionId ammoBPID, Item ammoItemResult,string ammoLang)
+            {
+                PowerToMake = powerToMake;
+                AmmoBPID = ammoBPID;
+                AmmoItemResult = ammoItemResult;
+                AmmoLang = ammoLang;
+            }
+            public E2AAmmoRegistryEntry()
+            {
+                PowerToMake = -1;
+                AmmoLang = "NullandBad";
+                AmmoBPID = MyDefinitionId.Parse("MyObjectBuilder_ConsumableItem/ClangCola");
+                AmmoItemResult = MyDefinitionManager.Static.GetBlueprintDefinition(MyDefinitionId.Parse("MyObjectBuilder_Ingot/Scrap")).Results[0];
+            }
+        }
         public void InitAmmoAvail()
         {
             //MyLog.Default.WriteLine("Len.Init Ammo Avail");
-            if (m_AvailAmmo.Count == 0)
+            if (E2AAmmoRegistry.Count == 0)
             {
-                lock (m_AvailAmmo)
+                lock (E2AAmmoRegistry)
                 {
                     //MyLog.Default.WriteLine("Len.Locked Ammo Init");
                     HashSet<MyBlueprintDefinitionBase> BPSet = new HashSet<MyBlueprintDefinitionBase>();
@@ -614,18 +730,13 @@ namespace E2A___Ammo_From_Energy.E2A
                         }
                         //MyFixedPoint finalKW = (MyFixedPoint.MultiplySafe(totalKW, m_PowerMulti))/2;
                         float finalGW = ((float)totalKW * m_PowerMulti) / 100;
-                        MyLog.Default.WriteLine("Len.Cost of " + AmmoID + " Is " + finalGW + "GW");
-                        m_AvailAmmo.Add(AmmoID, finalGW);
-                        m_BPtoAmmo.Add(AmmoID, ammoGiven[0]);
-                        m_AmmoIdSlot.Add(AmmoID);
-                        m_AmmoNames.Add(bp.DisplayNameText);
+                        //MyLog.Default.WriteLine("Len.Cost of " + AmmoID + " Is " + finalGW + "GW");
+                        E2AAmmoRegistry.Add(new E2AAmmoRegistryEntry(finalGW, AmmoID, ammoGiven[0],bp.DisplayNameText));
                     }
-                    m_AvailAmmo.Add(MyDefinitionId.Parse("MyObjectBuilder_Ingot/Scrap"), 0);
-                    m_AmmoIdSlot.Insert(0, MyDefinitionId.Parse("MyObjectBuilder_Ingot/Scrap"));
-                    m_AmmoNames.Insert(0, "Old Scrap Metal");
+                    E2AAmmoRegistry.Insert(0,new E2AAmmoRegistryEntry());
                 }
             }
-            MyLog.Default.WriteLine("Len.AmmoList contains: " + m_AvailAmmo.Count + " Entries");
+            MyLog.Default.WriteLine("Len.AmmoList contains: " + E2AAmmoRegistry.Count + " Entries");
         }
 
         public static void CustomControlGetter(IMyTerminalBlock block, List<IMyTerminalControl> controls)
@@ -681,8 +792,6 @@ namespace E2A___Ammo_From_Energy.E2A
 
         private void OnAppendingCustomInfo(IMyTerminalBlock block, StringBuilder sb)
         {
-
-
             sb.AppendLine("Required Power : ");
             MyValueFormatter.AppendWorkInBestUnit(PowerReq(), sb);
             if(block.CubeGrid.GridSizeEnum != 0) 
@@ -710,13 +819,11 @@ namespace E2A___Ammo_From_Energy.E2A
                 {
                     if (mess_SelectedAmmo.Value != 0)
                     {
-                        float ammoSelected = (float)m_AvailAmmo[m_AmmoIdSlot[mess_SelectedAmmo.Value]];
-                        float totalCost = ammoSelected * requiredPowerMulti;
-                        sb.AppendLine("Online - Creating : " + m_AmmoNames[mess_SelectedAmmo.Value]);
-                        //sb.AppendLine("Speed Multiplier : " + mess_SpeedMulti.Value);
+                        var selectedAmmo = E2AAmmoRegistry.ElementAt(mess_SelectedAmmo.Value);
+                        float totalCost = selectedAmmo.PowerToMake * requiredPowerMulti;
+                        sb.AppendLine("Online - Creating : " + selectedAmmo.AmmoLang);
                         sb.AppendLine("Energy : " + mess_BuiltPower.Value + " / " + totalCost);
-                        //sb.AppendLine("Progress : " + MathHelper.Clamp(100 * (mess_BuiltPower.Value / totalCost), 0, 100) + "%");
-                        sb.AppendLine("Time Left : " + MathHelper.Floor(MathHelper.Clamp(Math.Ceiling((float)(totalCost / (powerRequiredBase * requiredPowerMulti)) - (mess_BuiltPower.Value / (powerRequiredBase * requiredPowerMulti))), 0, int.MaxValue) / BlockSizeSpeedMulti) + " Seconds.");
+                        sb.AppendLine("Progress : " + MathHelper.Clamp(100 * (mess_BuiltPower.Value / totalCost), 0, 100) + "%");
                     }
                     else
                     {
@@ -724,13 +831,11 @@ namespace E2A___Ammo_From_Energy.E2A
                     }
                     if (mess_SelectedAmmo2.Value != 0)
                     {
-                        float ammoSelected2 = (float)m_AvailAmmo[m_AmmoIdSlot[mess_SelectedAmmo2.Value]];
-                        float totalCost2 = ammoSelected2 * requiredPowerMulti;
-                        sb.AppendLine("Online - Creating : " + m_AmmoNames[mess_SelectedAmmo2.Value]);
-                        //sb.AppendLine("Speed Multiplier : " + mess_SpeedMulti.Value);
-                        sb.AppendLine("Energy : " + mess_BuiltPower2.Value + " / " + totalCost2);
-                        //sb.AppendLine("Progress : " + MathHelper.Clamp(100 * (mess_BuiltPower2.Value / totalCost2), 0, 100) + "%");
-                        sb.AppendLine("Time Left : " + MathHelper.Floor(MathHelper.Clamp(Math.Ceiling((float)(totalCost2 / (powerRequiredBase * requiredPowerMulti)) - (mess_BuiltPower2.Value / (powerRequiredBase * requiredPowerMulti))), 0, int.MaxValue) / BlockSizeSpeedMulti) + " Seconds.");
+                        var selectedAmmo2 = E2AAmmoRegistry.ElementAt(mess_SelectedAmmo2.Value);
+                        float totalCost2 = selectedAmmo2.PowerToMake * requiredPowerMulti;
+                        sb.AppendLine("Online - Creating : " + selectedAmmo2.AmmoLang);
+                        sb.AppendLine("Energy : " + mess_BuiltPower.Value + " / " + totalCost2);
+                        sb.AppendLine("Progress : " + MathHelper.Clamp(100 * (mess_BuiltPower.Value / totalCost2), 0, 100) + "%");
                     }
                     else
                     {
@@ -738,13 +843,11 @@ namespace E2A___Ammo_From_Energy.E2A
                     }
                     if (mess_SelectedAmmo3.Value != 0)
                     {
-                        float ammoSelected3 = (float)m_AvailAmmo[m_AmmoIdSlot[mess_SelectedAmmo3.Value]];
-                        float totalCost3 = ammoSelected3 * requiredPowerMulti;
-                        sb.AppendLine("Online - Creating : " + m_AmmoNames[mess_SelectedAmmo3.Value]);
-                        //sb.AppendLine("Speed Multiplier : " + mess_SpeedMulti.Value);
-                        sb.AppendLine("Energy : " + mess_BuiltPower3.Value + " / " + totalCost3);
-                        //sb.AppendLine("Progress : " + MathHelper.Clamp(100 * (mess_BuiltPower3.Value / totalCost3), 0, 100) + "%");
-                        sb.AppendLine("Time Left : " + MathHelper.Floor(MathHelper.Clamp(Math.Ceiling((float)(totalCost3 / (powerRequiredBase * requiredPowerMulti)) - (mess_BuiltPower3.Value / (powerRequiredBase * requiredPowerMulti))), 0, int.MaxValue)/BlockSizeSpeedMulti) + " Seconds.");
+                        var selectedAmmo3 = E2AAmmoRegistry.ElementAt(mess_SelectedAmmo3.Value);
+                        float totalCost3 = selectedAmmo3.PowerToMake * requiredPowerMulti;
+                        sb.AppendLine("Online - Creating : " + selectedAmmo3.AmmoLang);
+                        sb.AppendLine("Energy : " + mess_BuiltPower.Value + " / " + totalCost3);
+                        sb.AppendLine("Progress : " + MathHelper.Clamp(100 * (mess_BuiltPower.Value / totalCost3), 0, 100) + "%");
                     }
                     else
                     {
@@ -755,12 +858,11 @@ namespace E2A___Ammo_From_Energy.E2A
                 {
                     if (mess_SelectedAmmo.Value != 0)
                     {
-                        float ammoSelected = (float)m_AvailAmmo[m_AmmoIdSlot[mess_SelectedAmmo.Value]];
-                        float totalCost = ammoSelected * requiredPowerMulti;
-                        sb.AppendLine("Online - Creating : " + m_AmmoNames[mess_SelectedAmmo.Value]);
-                        sb.AppendLine("Speed Multiplier : " + mess_SpeedMulti.Value);
+                        var selectedAmmo = E2AAmmoRegistry.ElementAt(mess_SelectedAmmo.Value);
+                        float totalCost = selectedAmmo.PowerToMake * requiredPowerMulti;
+                        sb.AppendLine("Online - Creating : " + selectedAmmo.AmmoLang);
+                        sb.AppendLine("Energy : " + mess_BuiltPower.Value + " / " + totalCost);
                         sb.AppendLine("Progress : " + MathHelper.Clamp(100 * (mess_BuiltPower.Value / totalCost), 0, 100) + "%");
-                        sb.AppendLine("Time Left : " + MathHelper.Floor(MathHelper.Clamp(Math.Ceiling((float)(totalCost / (powerRequiredBase * requiredPowerMulti)) - (mess_BuiltPower.Value / (powerRequiredBase * requiredPowerMulti))), 0, int.MaxValue) / BlockSizeSpeedMulti) + " Seconds.");
                     }
                     else
                     {
@@ -788,254 +890,195 @@ namespace E2A___Ammo_From_Energy.E2A
             MyAPIGateway.TerminalControls.CustomControlGetter -= CustomControlGetter;
             MyAPIGateway.TerminalControls.CustomControlGetter += CustomControlGetter;
 
-            CreateAmmoSelect();
-            CreateCountSelect();
-
-            CreateAmmo2Select();
-            CreateCount2Select();
-
-            CreateAmmo3Select();
-            CreateCount3Select();
+            CreateAmmoSelects();
+            CreateCountSelects();
 
             CreateSpeedSelect();
 
         }
 
-        private static void CreateAmmoSelect()
+        private static void CreateAmmoSelects()
         {
-
-            var dropdown = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCombobox, IMyConveyorSorter>("E2AComboBoxAmmo");
-
-            dropdown.Title = MyStringId.GetOrCompute("Ammo To Print");
-            dropdown.Getter = (block) =>
+            for (int i = 0; i < 3; i++)
             {
-                if (block == null || block.GameLogic == null)
+                var dropdown = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCombobox, IMyConveyorSorter>("E2AComboBoxAmmo-" + i);
+                switch (i)
                 {
-                    return 0;
+                    case 0:
+                        {
+                            dropdown.Title = MyStringId.GetOrCompute("Ammo To Print #1");
+                            break;
+                        }
+                    case 1:
+                        {
+                            dropdown.Title = MyStringId.GetOrCompute("Ammo To Print #2");
+                            break;
+                        }
+                    case 2:
+                        {
+                            dropdown.Title = MyStringId.GetOrCompute("Ammo To Print #3");
+                            break;
+                        }
                 }
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-                return logic != null ? logic.mess_SelectedAmmo.Value : 0;
-            };
-            dropdown.Setter = (block, value) =>
-            {
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-
-                if (logic != null)
+                
+                dropdown.Getter = (block) =>
                 {
-                    logic.mess_SelectedAmmo.ValidateAndSet(MathHelper.Floor(value));
-                }
-                logic.IsSerialized();
-            };
-
-            dropdown.ComboBoxContent = (ele) =>
-            {
-                ele.Clear();
-                foreach (string ammo in m_AmmoNames)
-                {
-                    MyStringId s = MyStringId.GetOrCompute(ammo);
-                    if (s == MyStringId.GetOrCompute("Old Scrap Metal"))
+                    if (block == null || block.GameLogic == null)
                     {
-                        s = MyStringId.GetOrCompute("Idle");
+                        return 0;
                     }
-                    ele.Add(new MyTerminalControlComboBoxItem { Key = ele.Count, Value = s });
-                }
-            };
-
-            m_customControls.Add(dropdown);
-        }
-
-        private static void CreateAmmo2Select()
-        {
-
-            var dropdown = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCombobox, IMyConveyorSorter>("E2AComboBoxAmmo2");
-
-            dropdown.Title = MyStringId.GetOrCompute("Ammo To Print #2");
-            dropdown.Tooltip = MyStringId.GetOrCompute("Does Nothing on Small Grid Blocks.");
-            dropdown.Getter = (block) =>
-            {
-                if (block == null || block.GameLogic == null)
-                {
-                    return 0;
-                }
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-                return logic != null ? logic.mess_SelectedAmmo2.Value : 0;
-            };
-            dropdown.Setter = (block, value) =>
-            {
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-
-                if (logic != null)
-                {
-                    logic.mess_SelectedAmmo2.ValidateAndSet(MathHelper.Floor(value));
-                }
-                logic.IsSerialized();
-            };
-
-            dropdown.ComboBoxContent = (ele) =>
-            {
-                ele.Clear();
-                foreach (string ammo in m_AmmoNames)
-                {
-                    MyStringId s = MyStringId.GetOrCompute(ammo);
-                    if (s == MyStringId.GetOrCompute("Old Scrap Metal"))
+                    var logic = block.GameLogic.GetAs<E2ALogic>(); 
+                    if (logic == null) { return 0; }
+                    switch (i)
                     {
-                        s = MyStringId.GetOrCompute("Idle");
+                        case 0:
+                            {
+                                return logic.mess_SelectedAmmo.Value;
+                            }
+                        case 1:
+                            {
+                                return logic.mess_SelectedAmmo2.Value;
+                            }
+                        case 2:
+                            {
+                                return logic.mess_SelectedAmmo3.Value;
+                            }
                     }
-                    ele.Add(new MyTerminalControlComboBoxItem { Key = ele.Count, Value = s });
-                }
-            };
-
-            m_customControls.Add(dropdown);
-        }
-
-
-        private static void CreateAmmo3Select()
-        {
-
-            var dropdown = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCombobox, IMyConveyorSorter>("E2AComboBoxAmmo3");
-
-            dropdown.Title = MyStringId.GetOrCompute("Ammo To Print #3");
-            dropdown.Tooltip = MyStringId.GetOrCompute("Does Nothing on Small Grid Blocks.");
-            dropdown.Getter = (block) =>
-            {
-                if (block == null || block.GameLogic == null)
-                {
                     return 0;
-                }
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-                return logic != null ? logic.mess_SelectedAmmo3.Value : 0;
-            };
-            dropdown.Setter = (block, value) =>
-            {
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-
-                if (logic != null)
+                   
+                };
+                dropdown.Setter = (block, value) =>
                 {
-                    logic.mess_SelectedAmmo3.ValidateAndSet(MathHelper.Floor(value));
-                }
-                logic.IsSerialized();
-            };
+                    var logic = block.GameLogic.GetAs<E2ALogic>();
 
-            dropdown.ComboBoxContent = (ele) =>
-            {
-                ele.Clear();
-                foreach (string ammo in m_AmmoNames)
-                {
-                    MyStringId s = MyStringId.GetOrCompute(ammo);
-                    if (s == MyStringId.GetOrCompute("Old Scrap Metal"))
+                    if (logic != null)
                     {
-                        s = MyStringId.GetOrCompute("Idle");
+                        switch (i)
+                        {
+                            case 0:
+                                {
+                                    logic.mess_SelectedAmmo.ValidateAndSet(MathHelper.Floor(value));
+                                    break;
+                                }
+                            case 1:
+                                {
+                                    logic.mess_SelectedAmmo2.ValidateAndSet(MathHelper.Floor(value));
+                                    break;
+                                }
+                            case 2:
+                                {
+                                    logic.mess_SelectedAmmo3.ValidateAndSet(MathHelper.Floor(value));
+                                    break;
+                                }
+                        }
                     }
-                    ele.Add(new MyTerminalControlComboBoxItem { Key = ele.Count, Value = s });
-                }
-            };
+                    logic.IsSerialized();
+                };
 
-            m_customControls.Add(dropdown);
+                dropdown.ComboBoxContent = (ele) =>
+                {
+                    ele.Clear();
+                    foreach (E2AAmmoRegistryEntry entry in E2AAmmoRegistry)
+                    {
+                        MyStringId s = MyStringId.GetOrCompute(entry.AmmoLang);
+                        if (s == MyStringId.GetOrCompute("NullandBad"))
+                        {
+                            s = MyStringId.GetOrCompute("Idle");
+                        }
+                        ele.Add(new MyTerminalControlComboBoxItem { Key = ele.Count, Value = s });
+                    }
+                };
+
+                m_customControls.Add(dropdown);
+            }
         }
 
-
-        private static void CreateCountSelect()
+        private static void CreateCountSelects()
         {
-            var countsel = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyConveyorSorter>("E2ASliderCount");
-
-            countsel.Title = MyStringId.GetOrCompute("Max In Inventory");
-            countsel.SetLimits(0,250);
-            countsel.Tooltip = MyStringId.GetOrCompute("Max Items In Inventory. 0 == Unlimited.");
-            countsel.Getter = (block) =>
+            for (int i = 0; i < 3; i++)
             {
-                if (block == null || block.GameLogic == null)
+                var countsel = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyConveyorSorter>("E2ASliderCount-"+i);
+
+                countsel.Title = MyStringId.GetOrCompute("Max In Inventory");
+                countsel.SetLimits(0, 250);
+                countsel.Tooltip = MyStringId.GetOrCompute("Max Items In Inventory. 0 == Unlimited.");
+                countsel.Getter = (block) =>
                 {
+                    if (block == null || block.GameLogic == null)
+                    {
+                        return 0;
+                    }
+                    var logic = block.GameLogic.GetAs<E2ALogic>();
+                    if (logic == null) { return 0; }
+                    switch (i)
+                    {
+                        case 0:
+                            {
+                                return logic.mess_toMake.Value;
+                            }
+                        case 1:
+                            {
+                                return logic.mess_toMake2.Value;
+                            }
+                        case 2:
+                            {
+                                return logic.mess_toMake3.Value;
+                            }
+                    }
                     return 0;
-                }
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-                return logic != null ? logic.mess_toMake.Value : 0;
-            };
-            countsel.Setter = (block, value) =>
-            {
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-                if (logic != null)
-                    logic.mess_toMake.ValidateAndSet(MathHelper.Floor(value)) ;
-
-            };
-            countsel.Writer = (block, sb) =>
-            {
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-                if (logic != null)
+                };
+                countsel.Setter = (block, value) =>
                 {
-                    MyValueFormatter.AppendGenericInBestUnit(logic.mess_toMake.Value, sb);
-                }
-            };
-            m_customControls.Add(countsel);
-        }
-
-        private static void CreateCount2Select()
-        {
-            var countsel = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyConveyorSorter>("E2ASliderCount2");
-
-            countsel.Title = MyStringId.GetOrCompute("Max In Inventory Ammo #2");
-            countsel.SetLimits(0, 250);
-            countsel.Tooltip = MyStringId.GetOrCompute("Max Items In Inventory. 0 == Unlimited.");
-            countsel.Getter = (block) =>
-            {
-                if (block == null || block.GameLogic == null)
+                    var logic = block.GameLogic.GetAs<E2ALogic>();
+                    if (logic != null)
+                    {
+                        switch(i)
+                        {
+                            case 0:
+                                {
+                                    logic.mess_toMake.ValidateAndSet(MathHelper.Floor(value));
+                                    break;
+                                }
+                            case 1:
+                                {
+                                    logic.mess_toMake2.ValidateAndSet(MathHelper.Floor(value));
+                                    break;
+                                }
+                            case 2:
+                                {
+                                    logic.mess_toMake3.ValidateAndSet(MathHelper.Floor(value));
+                                    break;
+                                }
+                        }
+                    }
+                };
+                countsel.Writer = (block, sb) =>
                 {
-                    return 0;
-                }
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-                return logic != null ? logic.mess_toMake2.Value : 0;
-            };
-            countsel.Setter = (block, value) =>
-            {
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-                if (logic != null)
-                    logic.mess_toMake2.ValidateAndSet(MathHelper.Floor(value));
-
-            };
-            countsel.Writer = (block, sb) =>
-            {
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-                if (logic != null)
-                {
-                    MyValueFormatter.AppendGenericInBestUnit(logic.mess_toMake2.Value, sb);
-                }
-            };
-            m_customControls.Add(countsel);
-        }
-
-
-
-        private static void CreateCount3Select()
-        {
-            var countsel = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyConveyorSorter>("E2ASliderCount3");
-
-            countsel.Title = MyStringId.GetOrCompute("Max In Inventory Ammo #3");
-            countsel.SetLimits(0, 250);
-            countsel.Tooltip = MyStringId.GetOrCompute("Max Items In Inventory. 0 == Unlimited.");
-            countsel.Getter = (block) =>
-            {
-                if (block == null || block.GameLogic == null)
-                {
-                    return 0;
-                }
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-                return logic != null ? logic.mess_toMake3.Value : 0;
-            };
-            countsel.Setter = (block, value) =>
-            {
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-                if (logic != null)
-                    logic.mess_toMake3.ValidateAndSet(MathHelper.Floor(value));
-
-            };
-            countsel.Writer = (block, sb) =>
-            {
-                var logic = block.GameLogic.GetAs<E2ALogic>();
-                if (logic != null)
-                {
-                    MyValueFormatter.AppendGenericInBestUnit(logic.mess_toMake3.Value, sb);
-                }
-            };
-            m_customControls.Add(countsel);
+                    var logic = block.GameLogic.GetAs<E2ALogic>();
+                    if (logic != null)
+                    {
+                        switch (i)
+                        {
+                            case 0:
+                                {
+                                    MyValueFormatter.AppendGenericInBestUnit(logic.mess_toMake.Value, sb);
+                                    break;
+                                }
+                            case 1:
+                                {
+                                    MyValueFormatter.AppendGenericInBestUnit(logic.mess_toMake2.Value, sb);
+                                    break;
+                                }
+                            case 2:
+                                {
+                                    MyValueFormatter.AppendGenericInBestUnit(logic.mess_toMake3.Value, sb);
+                                    break;
+                                }
+                        }
+                    }
+                };
+                m_customControls.Add(countsel);
+            }
         }
 
         private static void CreateSpeedSelect()
@@ -1124,32 +1167,7 @@ namespace E2A___Ammo_From_Energy.E2A
             */
         }
 
-        public void SaveState()
-        {
-                //MyLog.Default.WriteLine("Len.StartSave");
-                if (!MyAPIGateway.Multiplayer.IsServer) return;
-
-            var state = new E2AState()
-            {
-                Version = 1,
-                SelectedAmmo = m_AmmoIdSlot[mess_SelectedAmmo.Value],
-                SelectedAmmo2 = m_AmmoIdSlot[mess_SelectedAmmo2.Value],
-                SelectedAmmo3 = m_AmmoIdSlot[mess_SelectedAmmo3.Value],
-                ToMake = mess_toMake.Value,
-                ToMake2 = mess_toMake2.Value,
-                ToMake3 = mess_toMake3.Value,
-                SpeedMulti = mess_SpeedMulti.Value,
-                powerBuilt = mess_BuiltPower.Value,
-                powerBuilt2 = mess_BuiltPower2.Value,
-                powerBuilt3 = mess_BuiltPower3.Value
-            };
-
-                //MyLog.Default.WriteLine("Selected ammo is " + state.SelectedAmmo);
-                if (Entity.Storage == null) { Entity.Storage = new MyModStorageComponent(); }
-                Entity.Storage[ModStorageID] = MyAPIGateway.Utilities.SerializeToXML(state);
-                //MyLog.Default.WriteLine("Len.FinishSave");
-        }
-
+       
 
         public override bool IsSerialized()
         {
