@@ -44,8 +44,8 @@
 			<ResourceSinkGroup>Conveyors</ResourceSinkGroup>
 			<InventorySize>
 				<X>3</X>
-				<Y>3</Y>
-				<Z>2</Z>
+				<Y>2</Y>
+				<Z>3</Z>
 			</InventorySize>
 			<EmissiveColorPreset>Default</EmissiveColorPreset>
 			<DamageEffectName>Damage_HeavyMech_Damaged</DamageEffectName>
@@ -100,10 +100,10 @@
 			<DestroySound>WepSmallWarheadExpl</DestroySound>
 			<ResourceSinkGroup>Conveyors</ResourceSinkGroup>
 			<InventorySize>
-				<X>1.5</X>
-				<Y>1.5</Y>
-				<Z>1</Z>
-			</InventorySize>
+                <X>0.7</X>
+                <Y>0.7</Y>
+                <Z>0.7</Z>
+            </InventorySize>
 			<EmissiveColorPreset>Default</EmissiveColorPreset>
 			<DestroyEffect>BlockDestroyedExplosion_Small</DestroyEffect>
 			<DestroySound>WepSmallWarheadExpl</DestroySound>

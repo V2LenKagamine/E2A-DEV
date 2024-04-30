@@ -28,7 +28,7 @@ namespace E2A___Ammo_From_Energy.E2A
             Version = CurrentSettingsVersion;
             SpeedMulti = 1.0f;
             AmmoList = new List<MyDefinitionId>();
-            DataList = new List<E2AData>();
+            DataList = new List<E2AData>() { new E2AData(), new E2AData(), new E2AData() };
         }
     }
 
@@ -44,5 +44,6 @@ namespace E2A___Ammo_From_Energy.E2A
             AmtToMake = amtToMake;
             PowerStored = powerStored;
         }
+        public E2AData() { }
     }
 }
