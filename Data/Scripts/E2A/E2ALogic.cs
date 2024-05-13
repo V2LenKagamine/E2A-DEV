@@ -395,44 +395,26 @@ namespace E2A___Ammo_From_Energy.E2A
                                     m_block.GetInventory().AddItems(MathHelper.Clamp(ttm, 1, int.MaxValue), theAmmo);
                                 }
                             }
-                            else if (ttm >= 1)
-                            {
+                            //Check again, only add power if we can fit at least 1 more.
+                            if (m_block.GetInventory().CanItemsBeAdded(1, MyDefinitionManager.Static.GetBlueprintDefinition(AmmoBpId).Results[0].Id)) {
                                 switch (i)
                                 {
                                     case 0:
                                         {
-                                            mess_SelectedAmmo.ValidateAndSet(0);
+                                            mess_BuiltPower.ValidateAndSet(mess_BuiltPower.Value + ((RequiredOperationalPower * mess_SpeedMulti.Value) / (m_OpsRunning * dt)));
                                             break;
                                         }
                                     case 1:
                                         {
-                                            mess_SelectedAmmo2.ValidateAndSet(0);
+                                            mess_BuiltPower2.ValidateAndSet(mess_BuiltPower2.Value + ((RequiredOperationalPower * mess_SpeedMulti.Value) / (m_OpsRunning * dt)));
                                             break;
                                         }
                                     case 2:
                                         {
-                                            mess_SelectedAmmo3.ValidateAndSet(0);
+                                            mess_BuiltPower3.ValidateAndSet(mess_BuiltPower3.Value + ((RequiredOperationalPower * mess_SpeedMulti.Value) / (m_OpsRunning * dt)));
                                             break;
                                         }
                                 }
-                            }
-                            switch(i)
-                            {
-                                case 0:
-                                    {
-                                        mess_BuiltPower.ValidateAndSet(mess_BuiltPower.Value + ((RequiredOperationalPower * mess_SpeedMulti.Value) / (m_OpsRunning * dt)));
-                                        break;
-                                    }
-                                case 1:
-                                    {
-                                        mess_BuiltPower2.ValidateAndSet(mess_BuiltPower2.Value + ((RequiredOperationalPower * mess_SpeedMulti.Value) / (m_OpsRunning * dt)));
-                                        break;
-                                    }
-                                case 2:
-                                    {
-                                        mess_BuiltPower3.ValidateAndSet(mess_BuiltPower3.Value + ((RequiredOperationalPower * mess_SpeedMulti.Value) / (m_OpsRunning * dt)));
-                                        break;
-                                    }
                             }
                         }
                     }
@@ -471,11 +453,10 @@ namespace E2A___Ammo_From_Energy.E2A
                                 m_block.GetInventory().AddItems(ttm, theAmmo);
                             }
                         }
-                        else if (ttm >= 1)
+                        if (m_block.GetInventory().CanItemsBeAdded(1, MyDefinitionManager.Static.GetBlueprintDefinition(AmmoBpId).Results[0].Id))
                         {
-                            mess_SelectedAmmo.ValidateAndSet(0);
+                            mess_BuiltPower.ValidateAndSet(mess_BuiltPower.Value + (RequiredOperationalPower * dt));
                         }
-                        mess_BuiltPower.ValidateAndSet(mess_BuiltPower.Value + (RequiredOperationalPower * dt));
                     }
                 }
             }
@@ -698,43 +679,42 @@ namespace E2A___Ammo_From_Energy.E2A
                             switch (matsubid)
                             {
                                 case "Iron":
-                                    totalKW += MyFixedPoint.MultiplySafe(7.5f, amount);
+                                    totalKW += MyFixedPoint.MultiplySafe(6.5f, amount);
                                     break;
                                 case "Nickel":
                                     totalKW += MyFixedPoint.MultiplySafe(9f, amount);
                                     break;
                                 case "Cobalt":
-                                    totalKW += MyFixedPoint.MultiplySafe(15f, amount);
+                                    totalKW += MyFixedPoint.MultiplySafe(10f, amount);
                                     break;
                                 case "Magnesium":
-                                    totalKW += MyFixedPoint.MultiplySafe(23.5f, amount);
+                                    totalKW += MyFixedPoint.MultiplySafe(18f, amount);
                                     break;
                                 case "Silicon":
-                                    totalKW += MyFixedPoint.MultiplySafe(5f, amount);
+                                    totalKW += MyFixedPoint.MultiplySafe(2.5f, amount);
                                     break;
                                 case "Silver":
-                                    totalKW += MyFixedPoint.MultiplySafe(15f, amount);
+                                    totalKW += MyFixedPoint.MultiplySafe(10f, amount);
                                     break;
                                 case "Gold":
-                                    totalKW += MyFixedPoint.MultiplySafe(20f, amount);
+                                    totalKW += MyFixedPoint.MultiplySafe(18f, amount);
                                     break;
                                 case "Uranium":
-                                    totalKW += MyFixedPoint.MultiplySafe(60f, amount);
+                                    totalKW += MyFixedPoint.MultiplySafe(50f, amount);
                                     break;
                                 case "Platinum":
-                                    totalKW += MyFixedPoint.MultiplySafe(30f, amount);
+                                    totalKW += MyFixedPoint.MultiplySafe(25f, amount);
                                     break;
                                 default:
-                                    totalKW += 200;
+                                    totalKW += 150;
                                     break;
 
                             }
 
                         }
                         //MyFixedPoint finalKW = (MyFixedPoint.MultiplySafe(totalKW, m_PowerMulti))/2;
-                        float finalGW = ((float)totalKW * m_PowerMulti) / 100;
-                        //MyLog.Default.WriteLine("Len.Cost of " + AmmoID + " Is " + finalGW + "GW");
-                        E2AAmmoRegistry.Add(new E2AAmmoRegistryEntry(finalGW, AmmoID, ammoGiven[0],bp.DisplayNameText));
+                        float finalKW = ((float)totalKW * m_PowerMulti) / 100;
+                        E2AAmmoRegistry.Add(new E2AAmmoRegistryEntry(finalKW, AmmoID, ammoGiven[0],bp.DisplayNameText));
                     }
                     E2AAmmoRegistry.Insert(0,new E2AAmmoRegistryEntry());
                 }
@@ -1112,8 +1092,8 @@ namespace E2A___Ammo_From_Energy.E2A
             var countsel = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyConveyorSorter>("E2ASliderSpeed");
 
             countsel.Title = MyStringId.GetOrCompute("Speed Multiplier");
-            countsel.SetLimits(1f, 5f);
-            countsel.Tooltip = MyStringId.GetOrCompute("TotalPowerPerAmmo=BasePower * (1.25 * SpeedMultiplier)");
+            countsel.SetLimits(1f, 25f);
+            countsel.Tooltip = MyStringId.GetOrCompute("Multiplies power usage, but also makes ammo faster.");
             countsel.Getter = (block) =>
             {
                 if (block == null || block.GameLogic == null)
